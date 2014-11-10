@@ -4,7 +4,7 @@
   <title><![CDATA[My Octopress Blog]]></title>
   <link href="http://yoursite.com/atom.xml" rel="self"/>
   <link href="http://yoursite.com/"/>
-  <updated>2014-11-10T13:57:25-08:00</updated>
+  <updated>2014-11-10T15:29:17-08:00</updated>
   <id>http://yoursite.com/</id>
   <author>
     <name><![CDATA[Your Name]]></name>
@@ -12,5 +12,811 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Pundit - a Study in Metaprogramming]]></title>
+    <link href="http://yoursite.com/blog/2014/11/10/pundit-a-study-in-metaprogramming/"/>
+    <updated>2014-11-10T14:47:38-08:00</updated>
+    <id>http://yoursite.com/blog/2014/11/10/pundit-a-study-in-metaprogramming</id>
+    <content type="html"><![CDATA[<p>I know what you&rsquo;re thinking. &ldquo;Metaprogramming? Why are you using such scary
+words?&rdquo; But it&rsquo;s not as bad as it seems. To keep it simple, metaprogramming
+is simply your code writing more code to be decided at runtime. Still confused?
+Let&rsquo;s walk through an example to help demonstrate the concept. Fortunately,
+there&rsquo;s an excellent gem available which is not only an easy entry into the
+topic, but is also widely used - it&rsquo;s worth it to any programmer to understand
+how this bit of code works.</p>
+
+<h1>What is Pundit?</h1>
+
+<p>Pundit is the single most widely used gem for authorization, and is often paired
+with the Devise library for authentication. Pundit is clean and simple,
+providing an ideal separation of concerns and putting all of your authorization
+logic into a single Plain Old Ruby Object. More importantly, it amounts to
+very simple Ruby code that could be implemented by anyone, but provides useful
+syntactic sugar to make applying it less unwieldy.</p>
+
+<h1>Jumping in</h1>
+
+<p>So how does Pundit work? Essentially, it starts with a class labeled
+&ldquo;#{Model}Policy&rdquo; which holds all permissions. For example, say we had an app
+for use in a hospital which has many users such as admins, doctors, and nurses.
+Admins should have a great deal of access, but shouldn&rsquo;t be allowed to see
+individual appointments to preserve patient privacy. Nurses and doctors should
+be able to see appointments, but only doctors should schedule new ones. Perhaps
+less than 100% realistic for an actual hospital, but it gives us a framework to
+deal with. For this particular situation, here&rsquo;s what we would expect to see
+in our AppointmentPolicy (as well as the ApplicationPolicy it inherits from)</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class ApplicationPolicy
+</span><span class='line'>  attr_reader :user, :record
+</span><span class='line'>
+</span><span class='line'>  def initialize(user, record)
+</span><span class='line'>    @user = user
+</span><span class='line'>    @record = record
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  *Default authorizations set to refuse access
+</span><span class='line'>
+</span><span class='line'>  class Scope
+</span><span class='line'>
+</span><span class='line'>    *Omitted. Scope is handled similarly to authorizations, but we won't
+</span><span class='line'>      talk about it here.
+</span><span class='line'>
+</span><span class='line'>  end
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class AppointmentPolicy &lt; ApplicationPolicy
+</span><span class='line'>
+</span><span class='line'>  def show?
+</span><span class='line'>    user.doctor? || user.nurse?
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  def create?
+</span><span class='line'>    user.doctor?
+</span><span class='line'>  end
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Of course, methods such as .doctor? and .nurse? are defined in the user models,
+likely referencing the roles of users within the database.</p>
+
+<p>To invoke these policies for authorization, a programmer could write a direct
+reference such as:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>class AppointmentsController
+</span><span class='line'>  def create
+</span><span class='line'>    @appointment = Appointment.new
+</span><span class='line'>    AppointmentPolicy.new(current_user, @appointment).create?
+</span><span class='line'>
+</span><span class='line'>    if @appointment.save?
+</span><span class='line'>      *etc
+</span><span class='line'>    end
+</span><span class='line'>  end
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Simple, right? You simply reference the class, instantiate it with the currently
+signed in user and the record involved in the authorization, and then ask
+whether the user in question can execute that particular action on that record.
+All of the authorization logic is neatly contained in a simple policy file for
+you to change as needed.</p>
+
+<p>Now, we could stop here and call it good. The solution works and it&rsquo;s scalable.
+But think about how long some of these calls could get. Here&rsquo;s an example of
+a scope call from one of my simpler projects.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@comments = CommentPolicy::Scope.new(current_user, @article.comments).resolve</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Not too complicated here. We&rsquo;re instantiating the Scope sub-class in the
+CommentPolicy and passing it the current_user and a scope of comments to be
+limited according to the policies listed under the .resolve method. However,
+you can see some problems. For one, this particular call isn&rsquo;t very long, but
+it still runs to almost 80 characters. Also, if you think about it, a lot of
+the information here could be inferred without explicit declaration. Going back
+to our original call:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>AppointmentPolicy.new(current_user, @appointment).create?</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The first thing we might notice is that the user passed in here can almost
+always be expected to be the currently signed in user. Also, the method
+&lsquo;current_user&rsquo; is used in Devise and very common in other strategies for
+authentication. It could be a useful default to simply assume the user for any
+authorization should be the result of the current_user method unless otherwise
+stated. Also, we could easily infer which policy to use. The record being
+passed in is clearly an Appointment, so it would be expected for us to use
+the AppointmentPolicy to authorize an action regarding it.</p>
+
+<p>Additionally, if we were to name all our authorization methods after the
+controller actions which they are authorizing, we would have a nice parallel
+where the create action maps to the create? authorization, the show action
+maps to the show? authorization, and so on. Since this is the overwhelmingly
+most common use of authorization, why not use that information to build up
+our calls?</p>
+
+<p>Put simply, an intelligent human being could easily infer most of the
+information above, so why not program a computer to do the same? If we could do
+so, we would only have to make short calls in the controller, such as:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>authorize @appointment</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Genius! And we find that this is precisely what Pundit does. Now let&rsquo;s start
+exploring that authorize! method to see how it does it.</p>
+
+<p>While Pundit has a fair number of files in its source code, we can focus on two,
+pundit.rb and policy_finder.rb. pundit.rb holds most of the public methods such
+as :authorize or :policy. policy_finder.rb is typically referenced in situations
+where the policy is being invoked from a view, as we will soon see. Let&rsquo;s start
+from the authorize method in pundit.rb</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>module Pundit
+</span><span class='line'>  class NotAuthorizedError &lt; StandardError
+</span><span class='line'>    attr_accessor :query, :record, :policy
+</span><span class='line'>  end
+</span><span class='line'>  class AuthorizationNotPerformedError &lt; StandardError; end
+</span><span class='line'>  class PolicyScopingNotPerformedError &lt; AuthorizationNotPerformedError; end
+</span><span class='line'>  class NotDefinedError &lt; StandardError; end
+</span><span class='line'>
+</span><span class='line'>  extend ActiveSupport::Concern
+</span><span class='line'>
+</span><span class='line'>  class &lt;&lt; self
+</span><span class='line'>    def policy_scope(user, scope)
+</span><span class='line'>      policy_scope = PolicyFinder.new(scope).scope
+</span><span class='line'>      policy_scope.new(user, scope).resolve if policy_scope
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    def policy_scope!(user, scope)
+</span><span class='line'>      PolicyFinder.new(scope).scope!.new(user, scope).resolve
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    def policy(user, record)
+</span><span class='line'>      policy = PolicyFinder.new(record).policy
+</span><span class='line'>      policy.new(user, record) if policy
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    def policy!(user, record)
+</span><span class='line'>      PolicyFinder.new(record).policy!.new(user, record)
+</span><span class='line'>    end
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  included do
+</span><span class='line'>    if respond_to?(:helper_method)
+</span><span class='line'>      helper_method :policy_scope
+</span><span class='line'>      helper_method :policy
+</span><span class='line'>      helper_method :pundit_user
+</span><span class='line'>    end
+</span><span class='line'>    if respond_to?(:hide_action)
+</span><span class='line'>      hide_action :policy_scope
+</span><span class='line'>      hide_action :policy_scope=
+</span><span class='line'>      hide_action :policy
+</span><span class='line'>      hide_action :policy=
+</span><span class='line'>      hide_action :authorize
+</span><span class='line'>      hide_action :verify_authorized
+</span><span class='line'>      hide_action :verify_policy_scoped
+</span><span class='line'>      hide_action :pundit_user
+</span><span class='line'>    end
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  def verify_authorized
+</span><span class='line'>    raise AuthorizationNotPerformedError unless @_policy_authorized
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  def verify_policy_scoped
+</span><span class='line'>    raise PolicyScopingNotPerformedError unless @_policy_scoped
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  def authorize(record, query=nil)
+</span><span class='line'>    query ||= params[:action].to_s + "?"
+</span><span class='line'>    @_policy_authorized = true
+</span><span class='line'>
+</span><span class='line'>    policy = policy(record)
+</span><span class='line'>    unless policy.public_send(query)
+</span><span class='line'>      error = NotAuthorizedError.new("not allowed to #{query} this #{record}")
+</span><span class='line'>      error.query, error.record, error.policy = query, record, policy
+</span><span class='line'>
+</span><span class='line'>      raise error
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    true
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  def policy_scope(scope)
+</span><span class='line'>    @_policy_scoped = true
+</span><span class='line'>    @policy_scope or Pundit.policy_scope!(pundit_user, scope)
+</span><span class='line'>  end
+</span><span class='line'>  attr_writer :policy_scope
+</span><span class='line'>
+</span><span class='line'>  def policy(record)
+</span><span class='line'>    @_policy or Pundit.policy!(pundit_user, record)
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  def policy=(policy)
+</span><span class='line'>    @_policy = policy
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  def pundit_user
+</span><span class='line'>    current_user
+</span><span class='line'>  end
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s start with the first method that&rsquo;s called - :authorize</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def authorize(record, query=nil)
+</span><span class='line'>  query ||= params[:action].to_s + "?"
+</span><span class='line'>  @_policy_authorized = true
+</span><span class='line'>
+</span><span class='line'>  policy = policy(record)
+</span><span class='line'>  unless policy.public_send(query)
+</span><span class='line'>    error = NotAuthorizedError.new("not allowed to #{query} this #{record}")
+</span><span class='line'>    error.query, error.record, error.policy = query, record, policy
+</span><span class='line'>
+</span><span class='line'>    raise error
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  true
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We see now that when we call authorize with one argument, the query is nil
+and is then assigned to be the string conversion of the action in the params
+hash plus a question mark. @_policy_authorized is then set to true and the
+:policy= method is called.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def policy=(policy)
+</span><span class='line'>  @_policy = policy
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Simple enough - combining the call in authorize with the method definition, our
+code looks like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@_policy = policy(record)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And here&rsquo;s the policy method:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def policy(record)
+</span><span class='line'>  @_policy or Pundit.policy!(pundit_user, record)
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We can now fully unpack the authorize line to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@_policy = @_policy or Pundit.policy!(pundit_user, record)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Or more familiarly:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@_policy ||= Pundit.policy!(pundit_user, record)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Since @_policy is not currently defined, we make a call to Pundit.policy! and
+pass in our record (@appointment) and the pundit_user</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def pundit_user
+</span><span class='line'>  current_user
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Aha, there&rsquo;s our current_user. Now we see where Pundit is making its assumption
+about how to find the currently signed-in user. Let&rsquo;s take a look at
+Pundit.policy!</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def policy!(user, record)
+</span><span class='line'>  PolicyFinder.new(record).policy!.new(user, record)
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well, looks like we&rsquo;re heading over to policy_finder.rb to figure this one out.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>module Pundit
+</span><span class='line'>  class PolicyFinder
+</span><span class='line'>    attr_reader :object
+</span><span class='line'>
+</span><span class='line'>    def initialize(object)
+</span><span class='line'>      @object = object
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    def scope
+</span><span class='line'>      policy::Scope if policy
+</span><span class='line'>    rescue NameError
+</span><span class='line'>      nil
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    def policy
+</span><span class='line'>      klass = find
+</span><span class='line'>      klass = klass.constantize if klass.is_a?(String)
+</span><span class='line'>      klass
+</span><span class='line'>    rescue NameError
+</span><span class='line'>      nil
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    def scope!
+</span><span class='line'>      scope or raise NotDefinedError, "unable to find scope #{find}::Scope for #{object}"
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>    def policy!
+</span><span class='line'>      policy or raise NotDefinedError, "unable to find policy #{find} for #{object}"
+</span><span class='line'>    end
+</span><span class='line'>
+</span><span class='line'>  private
+</span><span class='line'>
+</span><span class='line'>    def find
+</span><span class='line'>      if object.respond_to?(:policy_class)
+</span><span class='line'>        object.policy_class
+</span><span class='line'>      elsif object.class.respond_to?(:policy_class)
+</span><span class='line'>        object.class.policy_class
+</span><span class='line'>      else
+</span><span class='line'>        klass = if object.respond_to?(:model_name)
+</span><span class='line'>          object.model_name
+</span><span class='line'>        elsif object.class.respond_to?(:model_name)
+</span><span class='line'>          object.class.model_name
+</span><span class='line'>        elsif object.is_a?(Class)
+</span><span class='line'>          object
+</span><span class='line'>        elsif object.is_a?(Symbol)
+</span><span class='line'>          object.to_s.classify
+</span><span class='line'>        else
+</span><span class='line'>          object.class
+</span><span class='line'>        end
+</span><span class='line'>        "#{klass}Policy"
+</span><span class='line'>      end
+</span><span class='line'>    end
+</span><span class='line'>  end
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>First let&rsquo;s look at the policy! method:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def policy!
+</span><span class='line'>  policy or raise NotDefinedError, "unable to find policy #{find} for #{object}"
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>First we instantiate the PolicyFinder class with @object being equal to our
+record, so now @object == @appointment from our controller. We still don&rsquo;t know
+why .new.policy(user, record) is appended after policy!, but let&rsquo;s go through
+this step by step and it&rsquo;ll make sense later. Looking at the policy method,
+we find that it invokes yet another method and raises a NotDefinedError if
+that method returns nil. Let&rsquo;s take a look at that method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def policy
+</span><span class='line'>  klass = find
+</span><span class='line'>  klass = klass.constantize if klass.is_a?(String)
+</span><span class='line'>  klass
+</span><span class='line'>rescue NameError
+</span><span class='line'>  nil
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We see that a new variable, &lsquo;klass&rsquo;, is being set equal to the return of the
+find method, after which it is turned into a constant if it is a string, and
+then implicitly returned. Nil is returned in the even of a NameError. Simple
+enough, let&rsquo;s look at the find method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def find
+</span><span class='line'>  if object.respond_to?(:policy_class)
+</span><span class='line'>    object.policy_class
+</span><span class='line'>  elsif object.class.respond_to?(:policy_class)
+</span><span class='line'>    object.class.policy_class
+</span><span class='line'>  else
+</span><span class='line'>    klass = if object.respond_to?(:model_name)
+</span><span class='line'>      object.model_name
+</span><span class='line'>    elsif object.class.respond_to?(:model_name)
+</span><span class='line'>      object.class.model_name
+</span><span class='line'>    elsif object.is_a?(Class)
+</span><span class='line'>      object
+</span><span class='line'>    elsif object.is_a?(Symbol)
+</span><span class='line'>      object.to_s.classify
+</span><span class='line'>    else
+</span><span class='line'>      object.class
+</span><span class='line'>    end
+</span><span class='line'>    "#{klass}Policy"
+</span><span class='line'>  end
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And here&rsquo;s where we find our metaprogramming magic. Rendered more readably:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def find
+</span><span class='line'>  if the object has the method :policy_class
+</span><span class='line'>    then return that
+</span><span class='line'>  else if the class of the object has the method :policy_class
+</span><span class='line'>    then return that
+</span><span class='line'>  else
+</span><span class='line'>    if the object has the method :model_name
+</span><span class='line'>      then set klass equal to that
+</span><span class='line'>    else if the object's class has the method :model_name
+</span><span class='line'>      then set klass equal to that
+</span><span class='line'>    else if the object passed in is itself a class
+</span><span class='line'>      then set klass equal to that
+</span><span class='line'>    else if the object passed in is a symbol
+</span><span class='line'>      then set klass equal to a class version of the symbol
+</span><span class='line'>    else
+</span><span class='line'>      then set klass equal to whatever the class of the object is
+</span><span class='line'>    end
+</span><span class='line'>    return the concatenation of the klass variable and the string "Policy"
+</span><span class='line'>  end
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This find method doesn&rsquo;t know what will be passed in as the record. It could be
+a Model class, it could be an instance of a model, it could be a symbol, etc.
+It tries a number of methods to figure out what is the appropriate Policy name
+for the given record.</p>
+
+<p>Now that the klass variable in :policy has been found (the find method discussed
+just now would have returned &ldquo;AppointmentPolicy&rdquo;), it&rsquo;s turned into a
+constant and returned to the :policy! method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def policy!
+</span><span class='line'>  policy or raise NotDefinedError, "unable to find policy #{find} for #{object}"
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We have our policy, so this doesn&rsquo;t raise the error.</p>
+
+<p>Now, since AppointmentPolicy has been turned into a constant rather than its
+original string during the find method, we now have a formal class which can
+be instantiated. So now our original Pundit.policy! method makes sense</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def policy!(user, record)
+</span><span class='line'>  PolicyFinder.new(record).policy!.new(user, record)
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>From this, we now get:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>AppointmentPolicy.new(user, record)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Well, that looks familiar! Remember that the authorize method was supposed to
+simplify our original call which was:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>AppointmentPolicy.new(user, record).create?</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let&rsquo;s head all the way back to our authorize method.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>def authorize(record, query=nil)
+</span><span class='line'>  query ||= params[:action].to_s + "?"
+</span><span class='line'>  @_policy_authorized = true
+</span><span class='line'>
+</span><span class='line'>  policy = policy(record)
+</span><span class='line'>  unless policy.public_send(query)
+</span><span class='line'>    error = NotAuthorizedError.new("not allowed to #{query} this #{record}")
+</span><span class='line'>    error.query, error.record, error.policy = query, record, policy
+</span><span class='line'>
+</span><span class='line'>    raise error
+</span><span class='line'>  end
+</span><span class='line'>
+</span><span class='line'>  true
+</span><span class='line'>end</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Following our way back up the chain of method calls, we get back to our original
+line:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>policy = policy(record)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Which in our example now unpacks to:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>@_policy = AppointmentPolicy.new(current_user, @appointment)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The next line simply calls a public method on @_policy, and that method is the
+query as determined earlier in the method. In other words:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>unless AppointmentPolicy.new(current_user, @appointment).create?</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And there we have it. If this create? method returns false, a
+NotAuthorizedError will be raised, halting the controller action being
+authorized. If create? returns true, then the authorize method returns true and
+the controller action continues uninterrupted.</p>
+
+<h1>Conclusion</h1>
+
+<p>As you can see, this is an immense improvement over our original call. With just
+a few sensible assumptions about how the method is called, it&rsquo;s possible to
+vastly simplify our code. Metaprogramming often seems like magic, but like any
+code, it&rsquo;s actually quite straightforward. Don&rsquo;t be afraid to look into the
+source code of something that seems like magic. It&rsquo;s often easier than you
+think, and who knows? You just might learn something. I know I did.</p>
+]]></content>
+  </entry>
   
 </feed>
