@@ -5,8 +5,8 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Pundit - a Study in Metaprogramming - My Octopress Blog</title>
-  <meta name="author" content="Your Name">
+  <title>Pundit - a Study in Metaprogramming - Derek Maffett</title>
+  <meta name="author" content="Derek Maffett">
 
   
   <meta name="description" content="I know what you&rsquo;re thinking. &ldquo;Metaprogramming? Why are you using such scary
@@ -19,10 +19,10 @@ words?&rdquo; But it&rsquo;s not as bad as it seems. To keep &hellip;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://yoursite.com/blog/2014/11/10/pundit-a-study-in-metaprogramming">
+  <link rel="canonical" href="http://derekmaffett.com/blog/2014/11/10/pundit-a-study-in-metaprogramming">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="My Octopress Blog" type="application/atom+xml">
+  <link href="/atom.xml" rel="alternate" title="Derek Maffett" type="application/atom+xml">
   <script src="/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
@@ -36,32 +36,36 @@ words?&rdquo; But it&rsquo;s not as bad as it seems. To keep &hellip;">
 </head>
 
 <body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">My Octopress Blog</a></h1>
+  <header role="banner"><div class="header-left">
+  <hgroup>
+  <h1><a href="/">Derek Maffett</a></h1>
   
-    <h2>A blogging framework for hackers.</h2>
+  <div class="subtitle">
+    <h2>Web Application Developer</h2>
+  </div>
   
-</hgroup>
+  </hgroup>
+  
+</div>
 
+<div class="header-right">
+  <ul class="main-navigation">
+   <div> 
+
+  <li><a href="/">blog</a></li></div><div class="spacer"></div>
+
+   <div> 
+
+  <li><a href="/">projects</a></li></div><div class="spacer"></div>
+
+   <div> 
+
+  <li><a href="/">about</a></li></div>
+</ul>
+  
+
+</div>
 </header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
-  
-</ul>
-  
-<form action="https://www.google.com/search" method="get">
-  <fieldset role="search">
-    <input type="hidden" name="q" value="site:yoursite.com" />
-    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
-  </fieldset>
-</form>
-  
-<ul class="main-navigation">
-  <li><a href="/">Blog</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-</ul>
-
-</nav>
   <div id="main">
     <div id="content">
       <div>
@@ -78,7 +82,14 @@ words?&rdquo; But it&rsquo;s not as bad as it seems. To keep &hellip;">
 
 
 
-<time class='entry-date' datetime='2014-11-10T14:47:38-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>2:47 pm</span></time>
+
+
+
+
+  
+
+
+<time datetime="2014-11-10T14:47:38-08:00" pubdate data-updated="true"></time>
         
       </p>
     
@@ -92,6 +103,9 @@ Let&rsquo;s walk through an example to help demonstrate the concept. Fortunately
 there&rsquo;s an excellent gem available which is not only an easy entry into the
 topic, but is also widely used - it&rsquo;s worth it to any programmer to understand
 how this bit of code works.</p>
+
+<!-- more -->
+
 
 <h1>What is Pundit?</h1>
 
@@ -891,14 +905,21 @@ think, and who knows? You just might learn something. I know I did.</p>
       
   
 
-<span class="byline author vcard">Posted by <span class="fn">Your Name</span></span>
+<span class="byline author vcard">Posted by <span class="fn">Derek Maffett</span></span>
 
       
 
 
 
 
-<time class='entry-date' datetime='2014-11-10T14:47:38-08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>2:47 pm</span></time>
+
+
+
+
+  
+
+
+<time datetime="2014-11-10T14:47:38-08:00" pubdate data-updated="true"></time>
       
 
 
@@ -906,7 +927,7 @@ think, and who knows? You just might learn something. I know I did.</p>
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://yoursite.com/blog/2014/11/10/pundit-a-study-in-metaprogramming/" data-via="" data-counturl="http://yoursite.com/blog/2014/11/10/pundit-a-study-in-metaprogramming/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://derekmaffett.com/blog/2014/11/10/pundit-a-study-in-metaprogramming/" data-via="DerekGMaffett" data-counturl="http://derekmaffett.com/blog/2014/11/10/pundit-a-study-in-metaprogramming/" >Tweet</a>
   
   
   
@@ -923,9 +944,29 @@ think, and who knows? You just might learn something. I know I did.</p>
 </div>
 
 <aside class="sidebar">
+  <section>
+  <div class="social-icons">
+    
+
+    
+
+    
+
+    
+  <a href="https://github.com/DerekMaffett"><img src="/images/social/github.png" alt="Github" /></a>
+
+
+    
+  <a href="https://twitter.com/DerekGMaffett"><img src="/images/social/twitter.png" alt="Twitter" /></a>
+
+
+    <a href="/atom.xml"><img src="/images/social/rss.png" alt="RSS" /></a>
+  </div>
+</section>
+
   
     <section>
-  <h1>Recent Posts</h1>
+  <h1>Posts</h1>
   <ul id="recent_posts">
     
       <li class="post">
@@ -938,7 +979,6 @@ think, and who knows? You just might learn something. I know I did.</p>
 
 
 
-
   
 </aside>
 
@@ -946,8 +986,8 @@ think, and who knows? You just might learn something. I know I did.</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Your Name -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+  Copyright &copy; 2014 - Derek Maffett -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> using the <a href="https://github.com/fapper/classic-martinb">classic-martinb</a> theme</span>
 </p>
 
 </footer>

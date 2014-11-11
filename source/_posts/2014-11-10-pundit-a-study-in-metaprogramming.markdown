@@ -14,6 +14,8 @@ there's an excellent gem available which is not only an easy entry into the
 topic, but is also widely used - it's worth it to any programmer to understand
 how this bit of code works.
 
+<!-- more -->
+
 # What is Pundit?
 
 Pundit is the single most widely used gem for authorization, and is often paired

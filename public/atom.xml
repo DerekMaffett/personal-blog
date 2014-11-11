@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[My Octopress Blog]]></title>
-  <link href="http://yoursite.com/atom.xml" rel="self"/>
-  <link href="http://yoursite.com/"/>
-  <updated>2014-11-10T15:29:17-08:00</updated>
-  <id>http://yoursite.com/</id>
+  <title><![CDATA[Derek Maffett]]></title>
+  <link href="http://derekmaffett.com/atom.xml" rel="self"/>
+  <link href="http://derekmaffett.com/"/>
+  <updated>2014-11-10T17:37:23-08:00</updated>
+  <id>http://derekmaffett.com/</id>
   <author>
-    <name><![CDATA[Your Name]]></name>
+    <name><![CDATA[Derek Maffett]]></name>
     
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Pundit - a Study in Metaprogramming]]></title>
-    <link href="http://yoursite.com/blog/2014/11/10/pundit-a-study-in-metaprogramming/"/>
+    <link href="http://derekmaffett.com/blog/2014/11/10/pundit-a-study-in-metaprogramming/"/>
     <updated>2014-11-10T14:47:38-08:00</updated>
-    <id>http://yoursite.com/blog/2014/11/10/pundit-a-study-in-metaprogramming</id>
+    <id>http://derekmaffett.com/blog/2014/11/10/pundit-a-study-in-metaprogramming</id>
     <content type="html"><![CDATA[<p>I know what you&rsquo;re thinking. &ldquo;Metaprogramming? Why are you using such scary
 words?&rdquo; But it&rsquo;s not as bad as it seems. To keep it simple, metaprogramming
 is simply your code writing more code to be decided at runtime. Still confused?
@@ -25,6 +25,9 @@ Let&rsquo;s walk through an example to help demonstrate the concept. Fortunately
 there&rsquo;s an excellent gem available which is not only an easy entry into the
 topic, but is also widely used - it&rsquo;s worth it to any programmer to understand
 how this bit of code works.</p>
+
+<!-- more -->
+
 
 <h1>What is Pundit?</h1>
 
